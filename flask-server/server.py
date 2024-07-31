@@ -32,19 +32,23 @@ def upload_csv():
         global_df = global_df.replace({np.nan: None})
         data = global_df.to_dict(orient="records")
 
-        return jsonify({"data": data, "shape": global_df.shape})
+        global_nans = global_df.isnull().sum().reset_index()
+        global_nans.columns=["type", "number of nans"]
+        global_nans = global_nans.replace({np.nan: None})
+        nans = global_nans.to_dict(orient="records")
 
-@app.route("/get_nans", methods=['GET'])
-def get_nans():
-    if global_df is None:
-        return jsonify({"error": "No data available. Please upload a CSV file first."}), 400
-    
-    global_nans = global_df.isnull().sum().reset_index()
-    global_nans.columns=["type", "number of nans"]
-    global_nans = global_nans.replace({np.nan: None})
-    nans = global_nans.to_dict(orient="records")
-    
-    return jsonify({"nans": nans})
+        duplicates = int(global_df.duplicated().sum())
+        
+        global_desc = global_df.describe().round(2)
+        description = global_desc.to_dict(orient="records")
+
+        return jsonify({
+            "data": data,
+            "shape": global_df.shape,
+            "nans": nans,
+            "duplicates": duplicates,
+            "description": description
+        })
 
 if __name__ == "__main__":
     app.run(debug=True)
