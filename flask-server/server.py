@@ -50,5 +50,36 @@ def upload_csv():
             "description": description
         })
 
-if __name__ == "__main__":
+@app.route("/group_by", methods=["POST"])
+def group_by():
+    global global_df
+
+    if global_df is None:
+        return jsonify({"error": "No data available. Please upload a CSV file first."}), 400
+
+    request_data = request.get_json()
+    column_name = request_data.get("column_name")
+    value_column = request_data.get("value_column")
+    aggregation_function = request_data.get("aggregation_function")
+
+    if column_name is None or column_name not in global_df.columns:
+        return jsonify({"error": "Invalid column name"}), 400
+
+    if value_column is None or value_column not in global_df.columns:
+        return jsonify({"error": "Invalid value column"}), 400
+
+    if aggregation_function not in ["mean", "sum", "count", "max", "min"]:
+        return jsonify({"error": "Invalid aggregation function"}), 400
+
+    try:
+        grouped_df = global_df.groupby(column_name).agg({value_column: aggregation_function}).reset_index().round(2)
+        grouped_data = grouped_df.to_dict(orient="records")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    return jsonify({
+        "grouped_data": grouped_data
+    })
+
+if __name__ == "__main__":  
     app.run(debug=True)
