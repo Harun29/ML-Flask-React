@@ -13,6 +13,30 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 global_df = None
 
+@app.route("/get_csv", methods=["GET"])
+def get_csv():
+  global global_df
+  if global_df is not None:
+    data = global_df.to_dict(orient="records")
+
+    global_nans = global_df.isnull().sum().reset_index()
+    global_nans.columns=["type", "number of nans"]
+    global_nans = global_nans.replace({np.nan: None})
+    nans = global_nans.to_dict(orient="records")
+
+    duplicates = int(global_df.duplicated().sum())
+    
+    global_desc = global_df.describe().round(2)
+    description = global_desc.to_dict(orient="records")
+
+  return jsonify({
+    "data": data,
+    "shape": global_df.shape,
+    "nans": nans,
+    "duplicates": duplicates,
+    "description": description
+  })
+
 @app.route("/upload_csv", methods=["POST"])
 def upload_csv():
   global global_df
