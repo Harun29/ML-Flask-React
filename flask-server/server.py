@@ -29,12 +29,15 @@ def get_csv():
     global_desc = global_df.describe().round(2)
     description = global_desc.to_dict(orient="records")
 
+    columns = global_df.columns.tolist()
+
   return jsonify({
     "data": data,
     "shape": global_df.shape,
     "nans": nans,
     "duplicates": duplicates,
-    "description": description
+    "description": description,
+    "columns": columns
   })
 
 @app.route("/upload_csv", methods=["POST"])
@@ -66,12 +69,15 @@ def upload_csv():
     global_desc = global_df.describe().round(2)
     description = global_desc.to_dict(orient="records")
 
+    columns = global_df.columns.tolist()
+
     return jsonify({
       "data": data,
       "shape": global_df.shape,
       "nans": nans,
       "duplicates": duplicates,
-      "description": description
+      "description": description,
+      "columns": columns
     })
 
 @app.route("/group_by", methods=["POST"])
